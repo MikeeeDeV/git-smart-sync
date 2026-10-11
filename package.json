@@ -1,0 +1,80 @@
+{
+  "name": "git-smart-sync",
+  "displayName": "Git Smart Branch Sync",
+  "description": "Seamless multi-branch Git synchronization with interactive checkboxes right inside VS Code and Antigravity Source Control",
+  "version": "1.0.0",
+  "publisher": "mohamed-ayman",
+  "author": {
+    "name": "Mohamed Ayman"
+  },
+  "license": "MIT",
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "sync",
+    "branch",
+    "multi-branch",
+    "push",
+    "scm",
+    "source-control"
+  ],
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitSmartSync.sync",
+        "title": "🌿 مزامنة الفروع المحددة (Sync to Selected Branches...)",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "gitSmartSync.syncAll",
+        "title": "🚀 مزامنة كافة الفروع فوراً (Sync All Branches)",
+        "icon": "$(cloud-upload)"
+      }
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "gitSmartSync.sync",
+          "group": "navigation",
+          "when": "scmRepositoryCount > 0"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "gitSmartSync.sync"
+        },
+        {
+          "command": "gitSmartSync.syncAll"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Git Smart Branch Sync",
+      "properties": {
+        "gitSmartSync.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Git Smart Sync button in the editor status bar."
+        },
+        "gitSmartSync.defaultRemote": {
+          "type": "string",
+          "default": "origin",
+          "description": "Default Git remote name to push and sync to."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "node -c extension.js"
+  }
+}
