@@ -2,7 +2,7 @@
   "name": "git-smart-sync",
   "displayName": "Git Smart Branch Sync",
   "description": "Seamless multi-branch Git synchronization with interactive checkboxes right inside VS Code and Antigravity Source Control",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "mohamed-ayman",
   "author": {
     "name": "Mohamed Ayman"
