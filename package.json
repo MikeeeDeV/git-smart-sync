@@ -32,12 +32,12 @@
     "commands": [
       {
         "command": "gitSmartSync.sync",
-        "title": "🌿 مزامنة الفروع المحددة (Sync to Selected Branches...)",
+        "title": "Sync to Selected Branches...",
         "icon": "$(sync)"
       },
       {
         "command": "gitSmartSync.syncAll",
-        "title": "🚀 مزامنة كافة الفروع فوراً (Sync All Branches)",
+        "title": "Sync All Branches",
         "icon": "$(cloud-upload)"
       }
     ],
