@@ -59,13 +59,16 @@ export class GitRunner {
           disposableToken.dispose();
         }
 
+        const stdoutStr = String(stdout || '').trim();
+        const stderrStr = String(stderr || '').trim();
+
         if (error) {
-          const errMsg = stderr?.trim() || stdout?.trim() || error.message;
+          const errMsg = stderrStr || stdoutStr || error.message;
           const exitCode = typeof error.code === 'number' ? error.code : undefined;
-          return reject(new GitError(errMsg, 'git', args, exitCode, stderr?.trim()));
+          return reject(new GitError(errMsg, 'git', args, exitCode, stderrStr));
         }
 
-        resolve((stdout || '').trim());
+        resolve(stdoutStr);
       });
 
       let disposableToken: vscode.Disposable | undefined;
