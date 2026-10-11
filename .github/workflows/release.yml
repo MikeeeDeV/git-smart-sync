@@ -36,3 +36,9 @@ jobs:
         with:
           files: '*.vsix'
           generate_release_notes: true
+
+      - name: Publish to Open VSX Registry
+        if: env.OPEN_VSX_TOKEN != ''
+        env:
+          OPEN_VSX_TOKEN: ${{ secrets.OPEN_VSX_TOKEN }}
+        run: npx ovsx publish *.vsix -p ${{ secrets.OPEN_VSX_TOKEN }}
