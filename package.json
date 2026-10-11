@@ -29,6 +29,15 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "views": {
+      "scm": [
+        {
+          "id": "gitSmartSync.views.branches",
+          "name": "Git Smart Sync",
+          "when": "scmRepositoryCount > 0"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "gitSmartSync.sync",
@@ -39,6 +48,26 @@
         "command": "gitSmartSync.syncAll",
         "title": "Sync All Branches",
         "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "gitSmartSync.syncPreset",
+        "title": "Sync Branch Preset...",
+        "icon": "$(layers)"
+      },
+      {
+        "command": "gitSmartSync.dryRun",
+        "title": "Dry-Run Sync (Preview Only)",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "gitSmartSync.prune",
+        "title": "Prune Stale Remote Branches",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitSmartSync.refreshView",
+        "title": "Refresh Branches View",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -49,12 +78,48 @@
           "when": "scmRepositoryCount > 0"
         }
       ],
+      "view/title": [
+        {
+          "command": "gitSmartSync.refreshView",
+          "group": "navigation",
+          "when": "view == gitSmartSync.views.branches"
+        },
+        {
+          "command": "gitSmartSync.sync",
+          "group": "navigation",
+          "when": "view == gitSmartSync.views.branches"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gitSmartSync.syncPreset",
+          "group": "inline",
+          "when": "viewItem == presetItem"
+        },
+        {
+          "command": "gitSmartSync.sync",
+          "group": "inline",
+          "when": "viewItem == branchItem"
+        }
+      ],
       "commandPalette": [
         {
           "command": "gitSmartSync.sync"
         },
         {
           "command": "gitSmartSync.syncAll"
+        },
+        {
+          "command": "gitSmartSync.syncPreset"
+        },
+        {
+          "command": "gitSmartSync.dryRun"
+        },
+        {
+          "command": "gitSmartSync.prune"
+        },
+        {
+          "command": "gitSmartSync.refreshView"
         }
       ]
     },
@@ -70,6 +135,34 @@
           "type": "string",
           "default": "origin",
           "description": "Default Git remote name to push and sync to."
+        },
+        "gitSmartSync.syncStrategy": {
+          "type": "string",
+          "enum": [
+            "fast-forward",
+            "force-with-lease"
+          ],
+          "default": "fast-forward",
+          "description": "Branch synchronization strategy. 'fast-forward' aborts if divergence is detected to prevent accidental loss; 'force-with-lease' overrides remote if safe."
+        },
+        "gitSmartSync.autoPullBeforePush": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run 'git pull' before pushing the active branch."
+        },
+        "gitSmartSync.presets": {
+          "type": "object",
+          "default": {
+            "release": [
+              "main",
+              "production"
+            ],
+            "development": [
+              "dev",
+              "staging"
+            ]
+          },
+          "description": "Configured branch preset groups for quick multi-branch synchronization."
         }
       }
     }
