@@ -172,7 +172,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "build": "npm run compile",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "npm run compile && node --test test/*.test.js"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
