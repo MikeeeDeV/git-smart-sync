@@ -4,3 +4,9 @@ out/
 *.vsix
 .DS_Store
 *.log
+.vscode-test/
+coverage/
+.env
+.idea/
+.suo
+.ntvs_analysis.dat
