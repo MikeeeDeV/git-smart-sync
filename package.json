@@ -27,7 +27,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -75,7 +75,11 @@
     }
   },
   "scripts": {
-    "lint": "node -c extension.js"
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build": "npm run compile",
+    "lint": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
