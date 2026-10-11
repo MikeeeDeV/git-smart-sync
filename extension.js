@@ -26,8 +26,8 @@ function activate(context) {
   if (config.get('showStatusBar', true)) {
     const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
     statusBar.command = 'gitSmartSync.sync';
-    statusBar.text = '$(sync) مزامنة الفروع';
-    statusBar.tooltip = 'مزامنة الكود ورفعه باختيار الفروع (صناديق اختيار تفاعلية)';
+    statusBar.text = '$(sync) Sync Branches';
+    statusBar.tooltip = 'Sync and push changes to selected branches';
     statusBar.show();
     context.subscriptions.push(statusBar);
   }
@@ -36,7 +36,7 @@ function activate(context) {
   const syncCommand = vscode.commands.registerCommand('gitSmartSync.sync', async () => {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders || folders.length === 0) {
-      vscode.window.showErrorMessage('لا يوجد مجلد مشروع مفتوح حالياً في المحرر.');
+      vscode.window.showErrorMessage('No workspace folder is currently open.');
       return;
     }
 
@@ -45,7 +45,7 @@ function activate(context) {
     try {
       cwd = await runGit('git rev-parse --show-toplevel', cwd);
     } catch {
-      vscode.window.showErrorMessage('المجلد المفتوح ليس مستودع Git صالح.');
+      vscode.window.showErrorMessage('The active workspace folder is not a valid Git repository.');
       return;
     }
 
@@ -63,7 +63,7 @@ function activate(context) {
       const out = await runGit('git branch --format="%(refname:short)"', cwd);
       branches = out.split('\n').map(b => b.trim()).filter(Boolean);
     } catch (e) {
-      vscode.window.showErrorMessage('تعذر جلب فروع المشروع: ' + e.message);
+      vscode.window.showErrorMessage('Failed to retrieve repository branches: ' + e.message);
       return;
     }
 
@@ -88,17 +88,17 @@ function activate(context) {
     // Build QuickPick items with native checkboxes
     const items = branches.map(b => ({
       label: b,
-      description: b === currentBranch ? '(الفرع الحالي النشط ⭐)' : '',
+      description: b === currentBranch ? '(Current active branch)' : '',
       picked: true // Pre-selected by default
     }));
 
     const selected = await vscode.window.showQuickPick(items, {
       canPickMany: true,
-      placeHolder: '🌿 اختر الفروع التي ترغب في مزامنة التغييرات ورفعها إليها:'
+      placeHolder: 'Select branches to sync and push changes to:'
     });
 
     if (!selected || selected.length === 0) {
-      vscode.window.showInformationMessage('تم إلغاء المزامنة.');
+      vscode.window.showInformationMessage('Branch synchronization cancelled.');
       return;
     }
 
@@ -108,7 +108,7 @@ function activate(context) {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `جاري مزامنة ورفع ${selectedBranches.length} فروع إلى ${defaultRemote}...`,
+        title: `Syncing and pushing ${selectedBranches.length} branches to ${defaultRemote}...`,
         cancellable: false
       },
       async progress => {
@@ -116,7 +116,7 @@ function activate(context) {
         const failed = [];
 
         for (const branch of selectedBranches) {
-          progress.report({ message: `جاري رفع [${branch}]...` });
+          progress.report({ message: `Pushing [${branch}]...` });
           try {
             if (branch === currentBranch) {
               await runGit(`git push ${defaultRemote} ${branch}`, cwd);
@@ -133,11 +133,11 @@ function activate(context) {
 
         if (failed.length > 0) {
           vscode.window.showWarningMessage(
-            `اكتملت المزامنة بنجاح لـ: [${success.join(', ')}] | تعذر: [${failed.join(', ')}]`
+            `Sync completed for: [${success.join(', ')}] | Failed: [${failed.join(', ')}]`
           );
         } else {
           vscode.window.showInformationMessage(
-            `✅ تمت مزامنة ورفع الفروع بنجاح: ${success.join(', ')}`
+            `Successfully synced and pushed branches: ${success.join(', ')}`
           );
         }
       }
@@ -163,9 +163,9 @@ function activate(context) {
           await runGit(`git push ${defaultRemote} HEAD:refs/heads/${branch}`, cwd);
         }
       }
-      vscode.window.showInformationMessage(`✅ تم رفع ومزامنة كل الفروع: ${branches.join(', ')}`);
+      vscode.window.showInformationMessage(`Successfully synced and pushed all branches: ${branches.join(', ')}`);
     } catch (err) {
-      vscode.window.showErrorMessage('خطأ في المزامنة: ' + err.message);
+      vscode.window.showErrorMessage('Sync error: ' + err.message);
     }
   });
 
