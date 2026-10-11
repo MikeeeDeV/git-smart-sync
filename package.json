@@ -8,6 +8,7 @@
     "name": "Mohamed Ayman"
   },
   "license": "MIT",
+  "icon": "media/icon.png",
   "categories": [
     "SCM Providers",
     "Other"
