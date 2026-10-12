@@ -9,6 +9,11 @@ describe('BranchService', () => {
   const cwd = process.cwd();
 
   test('should retrieve local branches including current branch', async () => {
+    try {
+      await runner.execute(['branch', 'main'], cwd);
+    } catch {
+      // branch already exists
+    }
     const branches = await service.getLocalBranches(cwd, 'main');
     assert.ok(Array.isArray(branches));
     assert.ok(branches.length > 0);
