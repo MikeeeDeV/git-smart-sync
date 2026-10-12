@@ -4,6 +4,8 @@ import { BranchService } from '../git/branchService';
 import { SyncEngine } from '../sync/syncEngine';
 import { QuickPickService } from '../ui/quickPick';
 import { ConfigurationService } from '../config/configurationService';
+import { OutputChannelLogger } from '../ui/outputChannel';
+import { BranchTreeItem } from '../ui/branchTreeProvider';
 
 export class SyncCommand {
   constructor(
@@ -11,17 +13,29 @@ export class SyncCommand {
     private readonly branchService: BranchService,
     private readonly syncEngine: SyncEngine,
     private readonly quickPick: QuickPickService,
-    private readonly configService: ConfigurationService
+    private readonly configService: ConfigurationService,
+    private readonly logger?: OutputChannelLogger
   ) {}
 
-  public async execute(branchesToSync?: string[]): Promise<void> {
+  public async execute(branchesToSync?: string[] | BranchTreeItem | string): Promise<void> {
     const repo = await this.repoService.getActiveRepository();
     if (!repo) {
       return;
     }
 
+    let targetBranches: string[] | undefined;
+    if (Array.isArray(branchesToSync)) {
+      targetBranches = branchesToSync;
+    } else if (typeof branchesToSync === 'string') {
+      targetBranches = [branchesToSync];
+    } else if (branchesToSync && typeof branchesToSync === 'object' && 'branchInfo' in branchesToSync) {
+      const name = (branchesToSync as BranchTreeItem).branchInfo?.name;
+      if (name) {
+        targetBranches = [name];
+      }
+    }
+
     const defaultRemote = this.configService.defaultRemote;
-    let targetBranches = branchesToSync;
 
     if (!targetBranches || targetBranches.length === 0) {
       const allBranches = await this.branchService.getAllBranches(
@@ -48,6 +62,8 @@ export class SyncCommand {
       pullBeforePush: this.configService.autoPullBeforePush
     };
 
+    this.logger?.info(`Initiating sync for branches: [${targetBranches.join(', ')}] -> ${defaultRemote} (strategy: ${options.strategy})`);
+
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -70,10 +86,18 @@ export class SyncCommand {
             .map(r => `${r.branch}: ${r.message}`)
             .join(' | ');
 
-          vscode.window.showWarningMessage(
-            `Sync finished with errors. Success: ${report.successCount}, Failed: ${report.failedCount}. [${failedDetails}]`
+          this.logger?.error(`Sync completed with failures: ${failedDetails}`);
+
+          const action = await vscode.window.showWarningMessage(
+            `Sync finished with errors. Success: ${report.successCount}, Failed: ${report.failedCount}. [${failedDetails}]`,
+            'Show Output'
           );
+
+          if (action === 'Show Output') {
+            this.logger?.show();
+          }
         } else {
+          this.logger?.info(`Successfully synced ${report.successCount} branches in ${(report.totalDurationMs / 1000).toFixed(1)}s.`);
           vscode.window.showInformationMessage(
             `Successfully synced ${report.successCount} branches in ${(report.totalDurationMs / 1000).toFixed(1)}s.`
           );
@@ -82,3 +106,4 @@ export class SyncCommand {
     );
   }
 }
+

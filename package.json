@@ -2,7 +2,7 @@
   "name": "git-smart-sync",
   "displayName": "Git Smart Branch Sync",
   "description": "Seamless multi-branch Git synchronization with interactive checkboxes right inside VS Code and Antigravity Source Control",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "mohamed-ayman",
   "author": {
     "name": "Mohamed Ayman"
@@ -60,6 +60,21 @@
         "icon": "$(layers)"
       },
       {
+        "command": "gitSmartSync.addPreset",
+        "title": "Add Branch Preset...",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "gitSmartSync.deletePreset",
+        "title": "Delete Branch Preset...",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitSmartSync.selectRemote",
+        "title": "Select Default Git Remote...",
+        "icon": "$(globe)"
+      },
+      {
         "command": "gitSmartSync.dryRun",
         "title": "Dry-Run Sync (Preview Only)",
         "icon": "$(eye)"
@@ -68,6 +83,11 @@
         "command": "gitSmartSync.prune",
         "title": "Prune Stale Remote Branches",
         "icon": "$(trash)"
+      },
+      {
+        "command": "gitSmartSync.showOutput",
+        "title": "Show Output Logs",
+        "icon": "$(output)"
       },
       {
         "command": "gitSmartSync.refreshView",
@@ -85,21 +105,46 @@
       ],
       "view/title": [
         {
+          "command": "gitSmartSync.addPreset",
+          "group": "navigation@1",
+          "when": "view == gitSmartSync.views.branches"
+        },
+        {
           "command": "gitSmartSync.refreshView",
-          "group": "navigation",
+          "group": "navigation@2",
+          "when": "view == gitSmartSync.views.branches"
+        },
+        {
+          "command": "gitSmartSync.showOutput",
+          "group": "navigation@3",
           "when": "view == gitSmartSync.views.branches"
         },
         {
           "command": "gitSmartSync.sync",
-          "group": "navigation",
+          "group": "navigation@4",
           "when": "view == gitSmartSync.views.branches"
         }
       ],
       "view/item/context": [
         {
           "command": "gitSmartSync.syncPreset",
-          "group": "inline",
+          "group": "inline@1",
           "when": "viewItem == presetItem"
+        },
+        {
+          "command": "gitSmartSync.deletePreset",
+          "group": "inline@2",
+          "when": "viewItem == presetItem"
+        },
+        {
+          "command": "gitSmartSync.addPreset",
+          "group": "inline",
+          "when": "viewItem == presetsCategory"
+        },
+        {
+          "command": "gitSmartSync.selectRemote",
+          "group": "inline",
+          "when": "viewItem == remoteCategory"
         },
         {
           "command": "gitSmartSync.sync",
@@ -118,10 +163,22 @@
           "command": "gitSmartSync.syncPreset"
         },
         {
+          "command": "gitSmartSync.addPreset"
+        },
+        {
+          "command": "gitSmartSync.deletePreset"
+        },
+        {
+          "command": "gitSmartSync.selectRemote"
+        },
+        {
           "command": "gitSmartSync.dryRun"
         },
         {
           "command": "gitSmartSync.prune"
+        },
+        {
+          "command": "gitSmartSync.showOutput"
         },
         {
           "command": "gitSmartSync.refreshView"

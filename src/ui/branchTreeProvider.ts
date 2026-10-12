@@ -12,7 +12,9 @@ export class BranchTreeItem extends vscode.TreeItem {
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly itemType: TreeItemType,
     public readonly branchInfo?: BranchInfo,
-    public readonly presetBranches?: string[]
+    public readonly presetBranches?: string[],
+    public readonly presetId?: string,
+    customContextValue?: string
   ) {
     super(label, collapsibleState);
 
@@ -30,7 +32,7 @@ export class BranchTreeItem extends vscode.TreeItem {
       this.iconPath = new vscode.ThemeIcon('layers');
       this.tooltip = `Branches: [${presetBranches?.join(', ')}]`;
     } else {
-      this.contextValue = 'categoryItem';
+      this.contextValue = customContextValue || 'categoryItem';
     }
   }
 }
@@ -62,11 +64,12 @@ export class BranchTreeProvider implements vscode.TreeDataProvider<BranchTreeIte
     }
 
     if (!element) {
+      const remote = this.configService.defaultRemote;
       // Top-level categories
       return [
-        new BranchTreeItem('Configured Presets', vscode.TreeItemCollapsibleState.Expanded, 'category'),
-        new BranchTreeItem('Local Branches', vscode.TreeItemCollapsibleState.Expanded, 'category'),
-        new BranchTreeItem('Remote Branches', vscode.TreeItemCollapsibleState.Collapsed, 'category')
+        new BranchTreeItem('Configured Presets', vscode.TreeItemCollapsibleState.Expanded, 'category', undefined, undefined, undefined, 'presetsCategory'),
+        new BranchTreeItem('Local Branches', vscode.TreeItemCollapsibleState.Expanded, 'category', undefined, undefined, undefined, 'localCategory'),
+        new BranchTreeItem(`Remote Branches (${remote})`, vscode.TreeItemCollapsibleState.Collapsed, 'category', undefined, undefined, undefined, 'remoteCategory')
       ];
     }
 
@@ -79,7 +82,8 @@ export class BranchTreeProvider implements vscode.TreeDataProvider<BranchTreeIte
             vscode.TreeItemCollapsibleState.None,
             'preset',
             undefined,
-            p.branches
+            p.branches,
+            p.id
           )
       );
     }
@@ -91,9 +95,10 @@ export class BranchTreeProvider implements vscode.TreeDataProvider<BranchTreeIte
       );
     }
 
-    if (element.label === 'Remote Branches') {
-      const remote = await this.branchService.getRemoteBranches(repo.rootPath, this.configService.defaultRemote);
-      return remote.map(
+    if (element.label?.startsWith('Remote Branches')) {
+      const remote = this.configService.defaultRemote;
+      const remoteBranches = await this.branchService.getRemoteBranches(repo.rootPath, remote);
+      return remoteBranches.map(
         b => new BranchTreeItem(b.name, vscode.TreeItemCollapsibleState.None, 'branch', b)
       );
     }

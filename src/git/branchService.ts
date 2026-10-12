@@ -69,8 +69,10 @@ export class BranchService {
    * Combine local and remote branches into a unified deduplicated list.
    */
   public async getAllBranches(cwd: string, remote: string, currentBranch: string): Promise<BranchInfo[]> {
-    const local = await this.getLocalBranches(cwd, currentBranch);
-    const remoteBranches = await this.getRemoteBranches(cwd, remote);
+    const [local, remoteBranches] = await Promise.all([
+      this.getLocalBranches(cwd, currentBranch),
+      this.getRemoteBranches(cwd, remote)
+    ]);
 
     const branchMap = new Map<string, BranchInfo>();
 

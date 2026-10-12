@@ -4,6 +4,7 @@ import { BranchService } from '../git/branchService';
 import { SyncEngine } from '../sync/syncEngine';
 import { QuickPickService } from '../ui/quickPick';
 import { ConfigurationService } from '../config/configurationService';
+import { OutputChannelLogger } from '../ui/outputChannel';
 
 export class DryRunCommand {
   constructor(
@@ -11,7 +12,8 @@ export class DryRunCommand {
     private readonly branchService: BranchService,
     private readonly syncEngine: SyncEngine,
     private readonly quickPick: QuickPickService,
-    private readonly configService: ConfigurationService
+    private readonly configService: ConfigurationService,
+    private readonly logger?: OutputChannelLogger
   ) {}
 
   public async execute(): Promise<void> {
@@ -38,6 +40,8 @@ export class DryRunCommand {
       dryRun: true
     };
 
+    this.logger?.info(`[Dry-Run] Simulating push for branches: [${targetBranches.join(', ')}] -> ${defaultRemote}`);
+
     const report = await this.syncEngine.syncBranches(
       targetBranches,
       repo.rootPath,
@@ -46,6 +50,7 @@ export class DryRunCommand {
     );
 
     const summaryLines = report.results.map(r => `• ${r.branch}: ${r.message}`);
+    this.logger?.info(`[Dry-Run] Result:\n${summaryLines.join('\n')}`);
     vscode.window.showInformationMessage(
       `[Dry-Run Preview] Checked ${report.results.length} branches:\n${summaryLines.join('\n')}`,
       { modal: true }

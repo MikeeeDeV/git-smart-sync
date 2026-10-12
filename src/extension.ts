@@ -7,15 +7,23 @@ import { SyncEngine } from './sync/syncEngine';
 import { QuickPickService } from './ui/quickPick';
 import { StatusBarManager } from './ui/statusBar';
 import { BranchTreeProvider, BranchTreeItem } from './ui/branchTreeProvider';
+import { OutputChannelLogger } from './ui/outputChannel';
 import { SyncCommand } from './commands/syncCommand';
 import { SyncAllCommand } from './commands/syncAllCommand';
 import { SyncPresetCommand } from './commands/syncPresetCommand';
+import { AddPresetCommand } from './commands/addPresetCommand';
+import { DeletePresetCommand } from './commands/deletePresetCommand';
+import { SelectRemoteCommand } from './commands/selectRemoteCommand';
 import { PruneCommand } from './commands/pruneCommand';
 import { DryRunCommand } from './commands/dryRunCommand';
 
 export function activate(context: vscode.ExtensionContext): void {
+  // ─── Initialize Output Channel & Logger ───────────────────────────────────
+  const logger = new OutputChannelLogger();
+  context.subscriptions.push(logger);
+
   // ─── Initialize Core Services ─────────────────────────────────────────────
-  const runner = new GitRunner();
+  const runner = new GitRunner(logger);
   const repoService = new RepositoryService(runner);
   const branchService = new BranchService(runner);
   const configService = new ConfigurationService();
@@ -35,15 +43,18 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(treeView);
 
   // ─── Initialize Commands ──────────────────────────────────────────────────
-  const syncCmd = new SyncCommand(repoService, branchService, syncEngine, quickPick, configService);
+  const syncCmd = new SyncCommand(repoService, branchService, syncEngine, quickPick, configService, logger);
   const syncAllCmd = new SyncAllCommand(repoService, branchService, syncCmd);
   const syncPresetCmd = new SyncPresetCommand(configService, quickPick, syncCmd);
-  const pruneCmd = new PruneCommand(repoService, branchService, configService);
-  const dryRunCmd = new DryRunCommand(repoService, branchService, syncEngine, quickPick, configService);
+  const addPresetCmd = new AddPresetCommand(repoService, branchService, configService, quickPick, logger);
+  const deletePresetCmd = new DeletePresetCommand(configService, logger);
+  const selectRemoteCmd = new SelectRemoteCommand(repoService, configService, logger);
+  const pruneCmd = new PruneCommand(repoService, branchService, configService, logger);
+  const dryRunCmd = new DryRunCommand(repoService, branchService, syncEngine, quickPick, configService, logger);
 
   // ─── Register VS Code Commands ────────────────────────────────────────────
   context.subscriptions.push(
-    vscode.commands.registerCommand('gitSmartSync.sync', async (branches?: string[]) => {
+    vscode.commands.registerCommand('gitSmartSync.sync', async (branches?: string[] | BranchTreeItem) => {
       await syncCmd.execute(branches);
       treeProvider.refresh();
     }),
@@ -59,6 +70,21 @@ export function activate(context: vscode.ExtensionContext): void {
       treeProvider.refresh();
     }),
 
+    vscode.commands.registerCommand('gitSmartSync.addPreset', async () => {
+      await addPresetCmd.execute();
+      treeProvider.refresh();
+    }),
+
+    vscode.commands.registerCommand('gitSmartSync.deletePreset', async (item?: BranchTreeItem) => {
+      await deletePresetCmd.execute(item);
+      treeProvider.refresh();
+    }),
+
+    vscode.commands.registerCommand('gitSmartSync.selectRemote', async () => {
+      await selectRemoteCmd.execute();
+      treeProvider.refresh();
+    }),
+
     vscode.commands.registerCommand('gitSmartSync.prune', async () => {
       await pruneCmd.execute();
       treeProvider.refresh();
@@ -66,6 +92,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('gitSmartSync.dryRun', async () => {
       await dryRunCmd.execute();
+    }),
+
+    vscode.commands.registerCommand('gitSmartSync.showOutput', () => {
+      logger.show();
     }),
 
     vscode.commands.registerCommand('gitSmartSync.refreshView', () => {

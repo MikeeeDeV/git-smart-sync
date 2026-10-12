@@ -27,8 +27,10 @@ export class RepositoryService {
         }
         seenRoots.add(rootPath);
 
-        const currentBranch = await this.getCurrentBranch(rootPath);
-        const remotes = await this.getRemotes(rootPath);
+        const [currentBranch, remotes] = await Promise.all([
+          this.getCurrentBranch(rootPath),
+          this.getRemotes(rootPath)
+        ]);
         const repoName = path.basename(rootPath);
 
         repos.push({

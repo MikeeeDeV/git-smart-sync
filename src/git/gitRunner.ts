@@ -17,12 +17,20 @@ export class GitError extends Error {
   }
 }
 
+export interface GitRunnerLogger {
+  command?(args: string[], cwd: string): void;
+  log?(message: string): void;
+  error?(message: string, error?: unknown): void;
+}
+
 /**
  * Service for securely executing Git CLI commands with argument arrays,
  * timeouts, and optional cancellation.
  */
 export class GitRunner {
   private readonly defaultTimeoutMs = 60000;
+
+  constructor(private readonly logger?: GitRunnerLogger) {}
 
   /**
    * Run a Git command with explicit argument array to prevent shell injection.
@@ -42,6 +50,8 @@ export class GitRunner {
       if (token?.isCancellationRequested) {
         return reject(new GitError('Operation was cancelled before execution.', 'git', args));
       }
+
+      this.logger?.command?.(args, cwd);
 
       const options: ExecFileOptions = {
         cwd,
@@ -65,6 +75,7 @@ export class GitRunner {
         if (error) {
           const errMsg = stderrStr || stdoutStr || error.message;
           const exitCode = typeof error.code === 'number' ? error.code : undefined;
+          this.logger?.error?.(`git ${args.join(' ')} failed: ${errMsg}`, error);
           return reject(new GitError(errMsg, 'git', args, exitCode, stderrStr));
         }
 

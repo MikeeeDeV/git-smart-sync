@@ -49,4 +49,22 @@ export class ConfigurationService {
     const updated = { ...existing, [name]: branches };
     await config.update('presets', updated, vscode.ConfigurationTarget.Global);
   }
+
+  /**
+   * Remove a branch preset group from configuration.
+   */
+  public async deletePreset(name: string): Promise<void> {
+    const config = vscode.workspace.getConfiguration(this.section);
+    const existing = { ...config.get<Record<string, string[]>>('presets', {}) };
+    delete existing[name];
+    await config.update('presets', existing, vscode.ConfigurationTarget.Global);
+  }
+
+  /**
+   * Update the default Git remote in configuration.
+   */
+  public async setDefaultRemote(remote: string): Promise<void> {
+    const config = vscode.workspace.getConfiguration(this.section);
+    await config.update('defaultRemote', remote, vscode.ConfigurationTarget.Global);
+  }
 }
